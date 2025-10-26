@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { MinioService } from '../minio/minio.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -21,7 +25,6 @@ export class MediaService {
                 mimeType: file.mimeType,
                 size: file.size,
                 originalName: file.originalName,
-                shopId: file.shopId,
                 logo: isLogo,
             },
         });

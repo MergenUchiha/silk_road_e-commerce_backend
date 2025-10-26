@@ -15,14 +15,14 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AllExceptionsFilter } from './utils/core/allException.filter';
 import { HealthModule } from './utils/health/health.module';
 import { LoggerModule } from './utils/logger/logger.module';
-import { ShopModule } from './components/shop/shop.module';
-import { ProductModule } from './components/product/product.module';
-import { AuthModule } from './components/client/auth/auth.module';
+import { CategoryModule } from './modules/category/category.module';
+import { ProductModule } from './modules/product/product.module';
+import { AuthModule } from './modules/client/auth/auth.module';
 import { MediaModule } from './libs/media/media.module';
-import { TokenModule } from './components/token/token.module';
+import { TokenModule } from './modules/token/token.module';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
-import { RegionModule } from './components/region/region.module';
-import { AdvertisementModule } from './components/advertisement/advertisement.module';
+import { AdminAuthModule } from './modules/admin/auth/admin.auth.module';
+import { DataInitService } from './modules/data-init/data-init.service';
 
 @Module({
     imports: [
@@ -51,11 +51,10 @@ import { AdvertisementModule } from './components/advertisement/advertisement.mo
         TokenModule,
         MinioModule,
         MediaModule,
-        ShopModule,
+        CategoryModule,
         ProductModule,
         AuthModule,
-        RegionModule,
-        AdvertisementModule,
+        AdminAuthModule,
     ],
     providers: [
         {
@@ -79,6 +78,13 @@ import { AdvertisementModule } from './components/advertisement/advertisement.mo
             provide: APP_PIPE,
             useClass: ZodValidationPipe,
         },
+        DataInitService,
     ],
 })
-export class AppModule {}
+export class AppModule {
+    constructor(private readonly dataInitService: DataInitService) {}
+
+    async onModuleInit() {
+        await this.dataInitService.onModuleInit();
+    }
+}

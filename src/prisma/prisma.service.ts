@@ -6,6 +6,13 @@ export class PrismaService
     extends PrismaClient
     implements OnModuleInit, OnModuleDestroy
 {
+    private _admin: any;
+    public get admin(): any {
+        return this._admin;
+    }
+    public set admin(value: any) {
+        this._admin = value;
+    }
     constructor() {
         super({
             log: ['warn', 'error'],

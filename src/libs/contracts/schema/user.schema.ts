@@ -1,38 +1,55 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { ShopResponseSchema } from './shop.schema';
 
-const TurkmenistanPhoneNumberRegex = /^\+9936[0-9]{7}$/;
+const PhoneNumberRegex = /^\+[1-9]\d{1,14}$/;
 
 export const UserRegistrationRequestSchema = z.object({
-    phoneNumber: z.string().regex(TurkmenistanPhoneNumberRegex, {
+    phoneNumber: z.string().regex(PhoneNumberRegex, {
         message:
-            'Номер телефона должен быть в формате Туркменистана, например, +99361123456',
+            'Номер телефона должен быть в международном формате, например, +12025550123',
     }),
-    password: z.string().min(8),
+    password: z
+        .string()
+        .min(8, { message: 'Пароль должен содержать минимум 8 символов' }),
+});
+
+export const UserUpdateRequestSchema = z.object({
+    firstName: z.string().optional(),
+    secondName: z.string().optional(),
+    password: z
+        .string()
+        .min(8, { message: 'Пароль должен содержать минимум 8 символов' })
+        .optional(),
 });
 
 export const UserVerificationRequestSchema = z.object({
-    code: z.string().min(6),
+    code: z
+        .string()
+        .min(6, { message: 'Код должен содержать минимум 6 символов' }),
 });
 
 export const UserLoginRequestSchema = z.object({
-    phoneNumber: z.string().regex(TurkmenistanPhoneNumberRegex, {
+    phoneNumber: z.string().regex(PhoneNumberRegex, {
         message:
-            'Номер телефона должен быть в формате Туркменистана, например, +99361123456',
+            'Номер телефона должен быть в международном формате, например, +447911123456',
     }),
-    password: z.string().min(8),
+    password: z
+        .string()
+        .min(8, { message: 'Пароль должен содержать минимум 8 символов' }),
 });
 
 export const UserResponseSchema = z.object({
     id: z.string().uuid(),
+    firstName: z.string().optional(),
+    secondName: z.string().optional(),
     phoneNumber: z.string(),
-    shop: ShopResponseSchema.nullable().optional(),
 });
 
 export const UserTokenResponseSchema = z.object({
     id: z.string().uuid(),
     phoneNumber: z.string(),
+    firstName: z.string().optional(),
+    secondName: z.string().optional(),
     refreshToken: z.string().jwt(),
     accessToken: z.string().jwt(),
 });
