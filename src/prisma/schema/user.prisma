@@ -6,6 +6,8 @@ model User {
     password     String    @db.VarChar()
     isVerified   Boolean   @map("is_verified") @default(false)
 
+    basket       Basket?
+    orders       Order[]
     createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamp()
     updatedAt    DateTime? @updatedAt @map("updated_at") @db.Timestamp()
 

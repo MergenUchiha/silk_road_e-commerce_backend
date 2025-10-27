@@ -4,3 +4,5 @@ export * from './image.schema';
 export * from './user.schema';
 export * from './admin.schema';
 export * from './page.schema';
+export * from './basket.schema';
+export * from './order.schema';

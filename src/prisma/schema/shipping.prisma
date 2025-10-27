@@ -1,0 +1,11 @@
+model Shipping {
+    id              String  @id() @default(uuid()) @db.Uuid
+    userId          String  @db.VarChar(255) @map("user_id")
+    city            String?
+    street          String?
+    dateOfDelivery  String? @map("date_of_delivery")
+    orderId         String? @unique @map("order_id") @db.Uuid
+    order           Order?  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+    @@map("shipping")
+}

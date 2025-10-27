@@ -1,0 +1,14 @@
+model Order {
+    id          String       @id @default(uuid()) @db.Uuid
+    totalPrice  Float        @map("total_price")
+    userId      String?      @map("user_id") @db.Uuid
+    user        User?        @relation(fields: [userId], references: [id])
+    status      Status       @map("status")
+    
+    createdAt   DateTime?    @default(now()) @map("created_at")
+    updatedAt   DateTime?    @updatedAt @map("updated_at")
+    shipping    Shipping?
+    orderItems  OrderItems[]
+
+    @@map("orders")
+}
