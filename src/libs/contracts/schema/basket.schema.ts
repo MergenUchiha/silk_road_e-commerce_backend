@@ -3,24 +3,23 @@ import { createZodDto } from 'nestjs-zod';
 import { ProductResponseSchema } from './product.schema';
 
 export const AddToBasketRequestSchema = z.object({
-    quantity: z.string(),
+    quantity: z.number(),
     productId: z.string(),
 });
 
 export const BasketItemUpdateRequestSchema = z.object({
-    quantity: z.string(),
+    quantity: z.number(),
 });
 
 export const BasketItemResponseSchema = z.object({
     id: z.string().uuid(),
-    quantity: z.string(),
+    quantity: z.number(),
     product: ProductResponseSchema,
 });
 export const BasketItemsResponseSchema = z.array(BasketItemResponseSchema);
 
 export const BasketResponseSchema = z.object({
     id: z.string().uuid(),
-    totalPrice: z.number().nonnegative(),
     basketItems: BasketItemsResponseSchema,
 });
 

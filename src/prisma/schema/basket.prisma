@@ -1,6 +1,5 @@
 model Basket {
     id          String        @id() @default(uuid()) @db.Uuid
-    totalPrice  Float         @default(0.0) @map("total_price")
     basketItems BasketItems[]
     userId      String        @unique @map("user_id") @db.Uuid
     user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)

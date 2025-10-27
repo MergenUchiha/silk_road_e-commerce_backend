@@ -23,6 +23,7 @@ import { TokenModule } from './modules/token/token.module';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { AdminAuthModule } from './modules/admin/auth/admin.auth.module';
 import { DataInitService } from './modules/data-init/data-init.service';
+import { BasketModule } from './modules/basket/basket.module';
 
 @Module({
     imports: [
@@ -55,6 +56,7 @@ import { DataInitService } from './modules/data-init/data-init.service';
         ProductModule,
         AuthModule,
         AdminAuthModule,
+        BasketModule,
     ],
     providers: [
         {
