@@ -52,10 +52,13 @@ async function bootstrap() {
     }
 
     await app.register(fastifyHelmet);
-    await app.register(fastifyCsrfProtection, { cookieOpts: { signed: true } });
+    // await app.register(fastifyCsrfProtection, { cookieOpts: { signed: true } });
     await app.register(fastifyCors, {
         credentials: true,
-        origin: `*`,
+        origin: 'http://localhost:3000',
+        allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+        exposedHeaders: ['Set-Cookie'],
+        methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     });
     await app.register(multipart);
     await app.register(fastifyCookie, {

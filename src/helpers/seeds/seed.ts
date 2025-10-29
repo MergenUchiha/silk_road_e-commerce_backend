@@ -1,34 +1,25 @@
-// import { PrismaClient } from '@prisma/client';
-// import { createCategories } from './categories.seed';
-// import { createProducts } from './products.seed';
-// import { createUserProducts } from './users.seed';
-// import { createUserProduct } from './userProducts.seed';
+// prisma/seed/index.ts
+import { PrismaClient } from '@prisma/client';
+import { createCategories } from './schemas/category.seed';
+import { createProducts } from './schemas/products.seed';
+const prisma = new PrismaClient();
 
-// const prisma = new PrismaClient();
+async function main() {
+    console.log('Seeding database...');
+    await prisma.$connect();
 
-// console.log('Seeding...');
-// const startTime = new Date();
+    // Очистка перед сидом
+    await prisma.product.deleteMany();
+    await prisma.category.deleteMany();
 
-// async function main() {
-//     prisma.$connect;
-//     await prisma.userProduct.deleteMany();
-//     await prisma.user.deleteMany();
-//     await prisma.product.deleteMany();
-//     await prisma.category.deleteMany();
-//     await createCategories();
-//     await createProducts();
-//     await createUserProducts();
-//     await createUserProduct();
-// }
+    await createCategories();
+    await createProducts();
 
-// main()
-//     .catch((e) => {
-//         console.error(e);
-//         process.exit(1);
-//     })
-//     .finally(async () => {
-//         await prisma.$disconnect();
-//         const endTime = new Date();
-//         const timeDiff = (endTime.getTime() - startTime.getTime()) / 1000;
-//         console.log(`Seeding finished. Time taken: ${timeDiff} seconds`);
-//     });
+    await prisma.$disconnect();
+    console.log('Seeding finished!');
+}
+
+main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+});

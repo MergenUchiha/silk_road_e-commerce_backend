@@ -40,8 +40,8 @@ export const UserLoginRequestSchema = z.object({
 
 export const UserResponseSchema = z.object({
     id: z.string().uuid(),
-    firstName: z.string().optional(),
-    secondName: z.string().optional(),
+    firstName: z.string().optional().nullable(),
+    secondName: z.string().optional().nullable(),
     phoneNumber: z.string(),
 });
 

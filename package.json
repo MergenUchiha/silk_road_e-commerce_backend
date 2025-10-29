@@ -29,6 +29,7 @@
         "sentry:sourcemaps": "sentry-cli sourcemaps inject --org david-b8ed80b4b --project p2p_bot ./ && sentry-cli sourcemaps upload --org david-b8ed80b4b --project p2p_bot ./"
     },
     "dependencies": {
+        "@faker-js/faker": "^10.1.0",
         "@fastify/cookie": "^11.0.2",
         "@fastify/cors": "^11.0.1",
         "@fastify/csrf-protection": "^7.1.0",
