@@ -24,6 +24,7 @@ import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { AdminAuthModule } from './modules/admin/auth/admin.auth.module';
 import { DataInitService } from './modules/data-init/data-init.service';
 import { BasketModule } from './modules/basket/basket.module';
+import { ReviewModule } from './modules/review/review.module';
 
 @Module({
     imports: [
@@ -57,6 +58,7 @@ import { BasketModule } from './modules/basket/basket.module';
         AuthModule,
         AdminAuthModule,
         BasketModule,
+        ReviewModule,
     ],
     providers: [
         {

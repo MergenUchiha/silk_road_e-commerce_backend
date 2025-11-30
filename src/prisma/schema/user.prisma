@@ -8,6 +8,7 @@ model User {
 
     basket       Basket?
     orders       Order[]
+    reviews      Review[]
     createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamp()
     updatedAt    DateTime? @updatedAt @map("updated_at") @db.Timestamp()
 

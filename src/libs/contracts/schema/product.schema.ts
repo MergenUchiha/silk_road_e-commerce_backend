@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { ImagesResponseSchema } from './image.schema';
 import { createZodDto } from 'nestjs-zod';
+import { ReviewsResponseSchema } from './review.schema';
 
 export const ProductCreateRequestSchema = z.object({
     title: z.string(),
@@ -24,6 +25,7 @@ export const ProductResponseSchema = z.object({
     size: z.string(),
     price: z.number().positive(),
     categoryId: z.string().uuid(),
+    reviews: ReviewsResponseSchema.optional(),
     images: ImagesResponseSchema.optional(),
 });
 

@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-// prisma/seed/categories.seed.ts
 import { PrismaClient } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 
@@ -12,7 +8,7 @@ export async function createCategories(count = 5) {
     for (let i = 0; i < count; i++) {
         await prisma.category.create({
             data: {
-                title: faker.commerce.department(),
+                title: faker.commerce.department() + ' ' + i,
             },
         });
     }

@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  directus:
+    image: directus/directus:11.1.1
+    container_name: silk_road_directus
+    ports:
+      - "8055:8055"
+    volumes:
+      - silk_road_directus_uploads:/directus/uploads
+      - silk_road_directus_extensions:/directus/extensions
+    environment:
+      HOST: '0.0.0.0'
+      PORT: 8055
+      KEY: ${DIRECTUS_KEY}
+      SECRET: ${DIRECTUS_SECRET}
+
+      DB_CLIENT: 'pg'
+      DB_HOST: host.docker.internal
+      DB_PORT: ${DB_PORT}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
+      ADMIN_NAME: ${DIRECTUS_ADMIN_NAME}
+      PUBLIC_URL: https://silk_road-admin.extensi.one/directus
+
+      MAX_PAYLOAD_SIZE: ${MAX_PAYLOAD_SIZE}
+      WEBSOCKETS_ENABLED: true
+
+    restart: unless-stopped
+
+volumes:
+  silk_road_directus_uploads:
+  silk_road_directus_extensions:

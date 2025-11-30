@@ -6,3 +6,4 @@ export * from './admin.schema';
 export * from './page.schema';
 export * from './basket.schema';
 export * from './order.schema';
+export * from './review.schema';

@@ -13,6 +13,7 @@ import {
     ImageNotFoundException,
     ProductNotFoundException,
     CategoryNotFoundException,
+    UserNotFoundException,
 } from 'src/libs/contracts/exceptions';
 import { TApiResp } from 'src/libs/contracts/interface';
 import { MediaService } from 'src/libs/media/media.service';
@@ -57,6 +58,7 @@ export class ProductService {
             where: { id: productId },
             include: {
                 images: true,
+                reviews: { include: { user: true } },
             },
         });
         if (!product) {
@@ -153,5 +155,14 @@ export class ProductService {
             throw new CategoryNotFoundException();
         }
         return category;
+    }
+
+    private async findUserById(userId: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            throw new UserNotFoundException();
+        }
     }
 }
