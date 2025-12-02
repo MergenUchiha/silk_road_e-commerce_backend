@@ -25,6 +25,7 @@ import { AdminAuthModule } from './modules/admin/auth/admin.auth.module';
 import { DataInitService } from './modules/data-init/data-init.service';
 import { BasketModule } from './modules/basket/basket.module';
 import { ReviewModule } from './modules/review/review.module';
+import { OrderModule } from './modules/order/order.module';
 
 @Module({
     imports: [
@@ -59,6 +60,7 @@ import { ReviewModule } from './modules/review/review.module';
         AdminAuthModule,
         BasketModule,
         ReviewModule,
+        OrderModule,
     ],
     providers: [
         {

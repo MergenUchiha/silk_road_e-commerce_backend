@@ -20,7 +20,7 @@ export const OrderUpdateRequestSchema = z.object({
 
 export const OrderItemResponseSchema = z.object({
     id: z.string().uuid(),
-    quantity: z.string(),
+    quantity: z.number(),
     product: ProductResponseSchema,
 });
 export const OrderItemsResponseSchema = z.array(OrderItemResponseSchema);
