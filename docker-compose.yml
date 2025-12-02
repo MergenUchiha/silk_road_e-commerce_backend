@@ -1,37 +1,76 @@
-version: "3.9"
+version: '3.9'
 
 services:
-  directus:
-    image: directus/directus:11.1.1
-    container_name: silk_road_directus
-    ports:
-      - "8055:8055"
-    volumes:
-      - silk_road_directus_uploads:/directus/uploads
-      - silk_road_directus_extensions:/directus/extensions
-    environment:
-      HOST: '0.0.0.0'
-      PORT: 8055
-      KEY: ${DIRECTUS_KEY}
-      SECRET: ${DIRECTUS_SECRET}
+    silk_road_directus:
+        image: directus/directus:11.1.1
+        container_name: silk_road_directus
+        ports:
+            - '8055:8055'
+        environment:
+            HOST: 0.0.0.0
+            PORT: 8055
+            KEY: silk_road_admin_key
+            SECRET: silk_road_admin_secret
 
-      DB_CLIENT: 'pg'
-      DB_HOST: host.docker.internal
-      DB_PORT: ${DB_PORT}
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+            DB_CLIENT: pg
+            DB_HOST: host.docker.internal
+            DB_PORT: 5432
+            DB_DATABASE: silk_road_e-commerce_backend
+            DB_USER: postgres
+            DB_PASSWORD: Uchiha_11
 
-      ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
-      ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
-      ADMIN_NAME: ${DIRECTUS_ADMIN_NAME}
-      PUBLIC_URL: https://silk_road-admin.extensi.one/directus
+            ADMIN_EMAIL: mergendanat11@gmail.com
+            ADMIN_PASSWORD: Uchiha_11
+            ADMIN_NAME: messorem
 
-      MAX_PAYLOAD_SIZE: ${MAX_PAYLOAD_SIZE}
-      WEBSOCKETS_ENABLED: true
+            PUBLIC_URL: http://localhost:8055
+            MAX_PAYLOAD_SIZE: 1000000
+            WEBSOCKETS_ENABLED: 'true'
 
-    restart: unless-stopped
+        volumes:
+            - silk_road_directus_uploads:/directus/uploads
+            - silk_road_directus_extensions:/directus/extensions
 
+        depends_on:
+            - redis
+            - skysystem
+
+        networks:
+            - silk_network
+
+    skysystem:
+        image: minio/minio
+        container_name: skysystem
+        command: server /data --address ":9000" --console-address ":9001"
+        ports:
+            - '9000:9000'
+            - '9001:9001'
+        environment:
+            MINIO_ROOT_USER: admin
+            MINIO_ROOT_PASSWORD: password
+        volumes:
+            - minio_data:/data
+        networks:
+            - silk_network
+
+    redis:
+        image: redis:latest
+        container_name: redis
+        ports:
+            - '6379:6379'
+        volumes:
+            - redis_data:/data
+        networks:
+            - silk_network
+
+# ---------- VOLUMES ----------
 volumes:
-  silk_road_directus_uploads:
-  silk_road_directus_extensions:
+    silk_road_directus_uploads:
+    silk_road_directus_extensions:
+    minio_data:
+    redis_data:
+
+# ---------- NETWORK ----------
+networks:
+    silk_network:
+        driver: bridge
