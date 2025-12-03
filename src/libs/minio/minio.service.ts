@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Minio from 'minio';
@@ -10,11 +11,15 @@ export class MinioService implements OnModuleInit {
     private bucketName: string;
 
     constructor(private configService: ConfigService) {
+        const endpoint =
+            this.configService.getOrThrow<string>('MINIO_ENDPOINT');
+        const port = Number(
+            this.configService.getOrThrow<string>('MINIO_PORT'),
+        );
+
         this.minioClient = new Minio.Client({
-            endPoint:
-                this.configService.getOrThrow<string>('MINIO_ENDPOINT') ||
-                this.configService.getOrThrow<string>('MINIO_HOST'),
-            port: Number(this.configService.getOrThrow<string>('MINIO_PORT')),
+            endPoint: endpoint,
+            port: port,
             useSSL:
                 this.configService.getOrThrow<string>('MINIO_USE_SSL') ===
                 'true',
@@ -24,7 +29,8 @@ export class MinioService implements OnModuleInit {
             ),
         });
 
-        this.bucketName = this.configService.getOrThrow('MINIO_BUCKET_NAME');
+        this.bucketName =
+            this.configService.getOrThrow<string>('MINIO_BUCKET_NAME');
     }
 
     async onModuleInit() {
@@ -32,24 +38,16 @@ export class MinioService implements OnModuleInit {
             this.logger.log(
                 `Connecting to MinIO at ${this.configService.getOrThrow('MINIO_ENDPOINT')}:${this.configService.getOrThrow('MINIO_PORT')}`,
             );
-
-            console.log('minio init');
             await this.createBucketIfNotExists();
         } catch (error: any) {
-            this.logger.error(
-                `Failed to create bucket on startup: ${error.message}`,
-            );
+            this.logger.error(`Failed to create bucket on startup: ${error}`);
         }
     }
 
     async createBucketIfNotExists() {
-        const bucketExists = await this.minioClient.bucketExists(
-            this.bucketName,
-        );
-
-        if (!bucketExists) {
+        const exists = await this.minioClient.bucketExists(this.bucketName);
+        if (!exists) {
             await this.minioClient.makeBucket(this.bucketName, '');
-
             await this.minioClient.setBucketPolicy(
                 this.bucketName,
                 JSON.stringify({
@@ -71,19 +69,15 @@ export class MinioService implements OnModuleInit {
     }
 
     async uploadFile(fileName: string, filePath: string, mimeType: string) {
-        const metaData = {
-            'Content-Type': mimeType,
-        };
-
-        const uploadedFile = await this.minioClient.fPutObject(
+        const metaData = { 'Content-Type': mimeType };
+        const res = await this.minioClient.fPutObject(
             this.bucketName,
             fileName,
             filePath,
             metaData,
         );
-
         this.logger.log(`Uploaded file: ${fileName}`);
-        return uploadedFile;
+        return res;
     }
 
     async uploadFileStream(
@@ -92,22 +86,16 @@ export class MinioService implements OnModuleInit {
         fileSize: number,
         mimeType: string,
     ) {
-        console.log('IN MINIO', this.minioClient);
-
-        const metaData = {
-            'Content-Type': mimeType,
-        };
-        const uploadedFile = await this.minioClient.putObject(
+        const metaData = { 'Content-Type': mimeType };
+        const res = await this.minioClient.putObject(
             this.bucketName,
-
             fileName,
             fileStream,
             fileSize,
             metaData,
         );
-
-        this.logger.log(`Uploaded file: ${fileName}`);
-        return uploadedFile;
+        this.logger.log(`Uploaded file stream: ${fileName}`);
+        return res;
     }
 
     async getFileUrl(fileName: string) {
@@ -116,30 +104,22 @@ export class MinioService implements OnModuleInit {
             this.bucketName,
             fileName,
         );
-
         this.logger.log(`Retrieved file URL: ${url}`);
-
-        if (process.env.NODE_ENV === 'development') {
-            return url;
-        }
-        return url.replace(
-            this.configService.getOrThrow<'string'>('MINIO_ENDPOINT'),
-            this.configService.getOrThrow<'string'>('MINIO_HOST'),
-        );
+        // Возвращаем url без изменений, чтобы он корректно работал в любом окружении
+        return url;
     }
 
     async deleteFile(fileName: string) {
         await this.minioClient.removeObject(this.bucketName, fileName);
-
         this.logger.log(`Deleted file: ${fileName}`);
     }
 
     deleteFiles(fileNames: string[]) {
         try {
             this.minioClient.removeObjects(this.bucketName, fileNames);
-            this.logger.log('Objects deleted successfully');
+            this.logger.log('Deleted multiple files successfully');
         } catch (err) {
-            this.logger.error(`Error occurred while deleting files: ${err}`);
+            this.logger.error(`Error deleting files: ${err}`);
         }
     }
 
@@ -149,12 +129,11 @@ export class MinioService implements OnModuleInit {
                 this.bucketName,
                 fileName,
             );
-
             this.logger.log(`Retrieved file stream: ${fileName}`);
             return stream;
         } catch (err) {
-            console.error('Error occurred while downloading file:', err);
-            this.logger.error(`Error occurred while downloading file: ${err}`);
+            this.logger.error(`Error retrieving file stream: ${err}`);
+            throw err;
         }
     }
 }

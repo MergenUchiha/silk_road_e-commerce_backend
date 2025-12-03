@@ -56,11 +56,6 @@ export const envSchema = z.object({
     HEALTH_CHECK_TOKEN: z.string(),
 
     // Logging config (JSON arrays)
-    NOT_SAVE_IN_DB_CONTEXTS: z
-        .string()
-        .transform((v) => JSON.parse(v) as string[]),
-    NOT_LOG_CONTEXTS: z.string().transform((v) => JSON.parse(v) as string[]),
-    NOT_LOG_HTTP_URLS: z.string().transform((v) => JSON.parse(v) as string[]),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;
@@ -74,4 +69,19 @@ export function validateEnv(config: Record<string, unknown>): EnvConfig {
         .join('; ');
 
     throw new Error(`ENV validation error: ${formatted}`);
+}
+
+function parseJsonArray(v: string): string[] {
+    let str = v.trim();
+    if (
+        (str.startsWith("'") && str.endsWith("'")) ||
+        (str.startsWith('"') && str.endsWith('"'))
+    ) {
+        str = str.slice(1, -1);
+    }
+    try {
+        return JSON.parse(str) as string[];
+    } catch {
+        throw new Error('Must be a valid JSON array string');
+    }
 }
