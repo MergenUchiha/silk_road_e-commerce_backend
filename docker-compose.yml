@@ -15,14 +15,6 @@ services:
         networks:
             - app
 
-    frontend:
-        build: ./frontend
-        container_name: frontend
-        ports:
-            - '80:80'
-        networks:
-            - app
-
     postgres:
         image: postgres:15
         container_name: postgres
