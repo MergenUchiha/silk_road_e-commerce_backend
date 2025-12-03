@@ -70,18 +70,3 @@ export function validateEnv(config: Record<string, unknown>): EnvConfig {
 
     throw new Error(`ENV validation error: ${formatted}`);
 }
-
-function parseJsonArray(v: string): string[] {
-    let str = v.trim();
-    if (
-        (str.startsWith("'") && str.endsWith("'")) ||
-        (str.startsWith('"') && str.endsWith('"'))
-    ) {
-        str = str.slice(1, -1);
-    }
-    try {
-        return JSON.parse(str) as string[];
-    } catch {
-        throw new Error('Must be a valid JSON array string');
-    }
-}
