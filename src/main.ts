@@ -37,6 +37,8 @@ async function bootstrap() {
     // const cacheService = app.get(CacheService);
 
     const port = configService.getOrThrow<number>('PORT');
+    const allowedOrigins =
+        configService.get<string>('FRONTEND_ORIGINS')?.split(',') || [];
 
     // await cacheService.init();
     if (configService.getOrThrow<boolean>('IS_SWAGGER_ENABLED')) {
@@ -55,7 +57,7 @@ async function bootstrap() {
     // await app.register(fastifyCsrfProtection, { cookieOpts: { signed: true } });
     await app.register(fastifyCors, {
         credentials: true,
-        origin: 'http://localhost:3000',
+        origin: allowedOrigins,
         allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
         exposedHeaders: ['Set-Cookie'],
         methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
