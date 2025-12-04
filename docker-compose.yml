@@ -1,48 +1,50 @@
 version: '3.8'
 
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - app
+    redis:
+        image: redis:7-alpine
+        container_name: redis
+        ports:
+            - '${REDIS_PORT:-6379}:6379'
+        environment:
+            - REDIS_PASSWORD=${REDIS_PASSWORD}
+        volumes:
+            - redis_data:/data
+        networks:
+            - app
 
-  minio:
-    image: minio/minio
-    container_name: minio
-    command: server /data --console-address ":9090"
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: admin12345
-    ports:
-      - "9000:9000"
-      - "9090:9090"
-    volumes:
-      - minio_data:/data
-    networks:
-      - app
+    minio:
+        image: minio/minio
+        container_name: minio
+        command: server /data --console-address ":9090"
+        environment:
+            MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+        ports:
+            - '${MINIO_PORT:-9000}:9000'
+            - '9090:9090'
+        volumes:
+            - minio_data:/data
+        networks:
+            - app
 
-  directus:
-    image: directus/directus:latest
-    container_name: directus
-    env_file:
-      - ./.env
-    ports:
-      - "8055:8055"
-    depends_on:
-      - redis
-      - minio
-    networks:
-      - app
+    directus:
+        image: directus/directus:latest
+        container_name: directus
+        env_file:
+            - ./.env
+        ports:
+            - '${PORT:-8055}:8055'
+        depends_on:
+            - redis
+            - minio
+        networks:
+            - app
 
 volumes:
-  redis_data:
-  minio_data:
+    redis_data:
+    minio_data:
 
 networks:
-  app:
-    driver: bridge
+    app:
+        driver: bridge
