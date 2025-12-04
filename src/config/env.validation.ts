@@ -55,7 +55,8 @@ export const envSchema = z.object({
     // Health check
     HEALTH_CHECK_TOKEN: z.string(),
 
-    // Logging config (JSON arrays)
+    //SWAGGER
+    IS_SWAGGER_ENABLED: z.coerce.boolean(),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

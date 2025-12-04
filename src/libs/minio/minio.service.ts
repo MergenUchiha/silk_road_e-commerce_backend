@@ -105,7 +105,6 @@ export class MinioService implements OnModuleInit {
             fileName,
         );
         this.logger.log(`Retrieved file URL: ${url}`);
-        // Возвращаем url без изменений, чтобы он корректно работал в любом окружении
         return url;
     }
 
@@ -114,9 +113,9 @@ export class MinioService implements OnModuleInit {
         this.logger.log(`Deleted file: ${fileName}`);
     }
 
-    deleteFiles(fileNames: string[]) {
+    async deleteFiles(fileNames: string[]) {
         try {
-            this.minioClient.removeObjects(this.bucketName, fileNames);
+            await this.minioClient.removeObjects(this.bucketName, fileNames);
             this.logger.log('Deleted multiple files successfully');
         } catch (err) {
             this.logger.error(`Error deleting files: ${err}`);

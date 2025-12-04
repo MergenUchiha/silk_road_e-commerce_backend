@@ -31,9 +31,9 @@ import { OrderModule } from './modules/order/order.module';
     imports: [
         SentryModule.forRoot(),
         ConfigModule.forRoot({
+            isGlobal: true,
             envFilePath: `.env`,
             validate: validateEnv,
-            isGlobal: true,
             cache: true,
         }),
         // CacheModule.registerAsync({
