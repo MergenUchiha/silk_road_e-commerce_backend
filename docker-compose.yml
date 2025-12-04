@@ -34,7 +34,7 @@ services:
         env_file:
             - ./.env
         ports:
-            - '${PORT:-8055}:8055'
+            - '${DIRECTUS_PORT:-8055}:8055'
         depends_on:
             - redis
             - minio
