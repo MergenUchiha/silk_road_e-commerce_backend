@@ -35,6 +35,8 @@ services:
             - ./.env
         ports:
             - '8055:8055'
+        environment:
+            PORT: 8055
         depends_on:
             - redis
             - minio
