@@ -37,6 +37,7 @@ async function bootstrap() {
     // const cacheService = app.get(CacheService);
 
     const port = configService.getOrThrow<number>('PORT');
+    const environment = configService.getOrThrow<string>('ENVIRONMENT');
     const allowedOrigins =
         configService.get<string>('FRONTEND_ORIGINS')?.split(',') || [];
 
@@ -73,7 +74,9 @@ async function bootstrap() {
     app.useGlobalInterceptors(
         new ClassSerializerInterceptor(app.get(Reflector)),
     );
-    app.setGlobalPrefix('api');
+    if (environment === 'development') {
+        app.setGlobalPrefix('api');
+    }
 
     await app.listen(port, '0.0.0.0', () => {
         console.log(`Your server is listening on port ${port}`);
