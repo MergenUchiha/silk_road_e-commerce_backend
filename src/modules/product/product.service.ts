@@ -1,7 +1,11 @@
-import { Injectable } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ITransformedFile } from 'src/common/interfaces/fileTransform.interface';
 import {
+    CreateImageDto,
     CreateProductDto,
+    ImageResponseSchema,
     PageDto,
     ProductResponseSchema,
     ProductsResponseSchema,
@@ -18,6 +22,7 @@ import {
 import { TApiResp } from 'src/libs/contracts/interface';
 import { MediaService } from 'src/libs/media/media.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { z } from 'zod';
 
 @Injectable()
 export class ProductService {
@@ -25,6 +30,18 @@ export class ProductService {
         private prisma: PrismaService,
         private mediaService: MediaService,
     ) {}
+    private fileSchema = z.object({
+        originalName: z.string().min(1, 'Original name is required'),
+        fileName: z.string().min(1, 'File name is required'),
+        filePath: z.string().min(1, 'File path is required'),
+        mimeType: z.string().refine((val) => val.startsWith('image/'), {
+            message: 'File must be an image',
+        }),
+        size: z.string().refine((val) => parseInt(val) <= 1500 * 1024 * 1024, {
+            message: 'File size must be less than 1.5GB',
+        }),
+        productId: z.string().uuid().optional(),
+    });
     async createProduct(
         dto: CreateProductDto,
     ): Promise<TApiResp<TApiProductResponse>> {
@@ -116,10 +133,31 @@ export class ProductService {
         productId: string,
         file: ITransformedFile,
     ): Promise<TApiResp<{ id: string }>> {
-        await this.findProductById(productId);
-        file.productId = productId;
-        const imageId = await this.mediaService.createProductFileMedia(file);
-        return { good: true, response: { id: imageId } };
+        try {
+            this.fileSchema.parse(file);
+        } catch (error) {
+            console.error('Validation failed:', error);
+            throw new BadRequestException(error);
+        }
+
+        const mediaData: CreateImageDto = {
+            originalName: file.originalName,
+            fileName: file.fileName,
+            filePath: file.filePath,
+            mimeType: file.mimeType,
+            size: file.size,
+            productId: file.productId,
+        };
+
+        const media = await this.prisma.image.create({
+            data: mediaData,
+        });
+        const parsed = ImageResponseSchema.parse(media);
+
+        return {
+            good: true,
+            response: parsed,
+        };
     }
 
     async deleteProductImage(imageId: string): Promise<TApiResp<true>> {

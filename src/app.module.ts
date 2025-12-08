@@ -9,7 +9,6 @@ import { AuthGuard } from './common/guards/auth.guard';
 import { LoggingInterceptor } from './common/interceptors/logger.interceptor';
 import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
 import { validateEnv } from './config/env.validation';
-import { MinioModule } from './libs/minio/minio.module';
 import { RedisModule } from './libs/redis/redis.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AllExceptionsFilter } from './utils/core/allException.filter';
@@ -52,7 +51,6 @@ import { OrderModule } from './modules/order/order.module';
         PrismaModule,
         RedisModule,
         TokenModule,
-        MinioModule,
         MediaModule,
         CategoryModule,
         ProductModule,

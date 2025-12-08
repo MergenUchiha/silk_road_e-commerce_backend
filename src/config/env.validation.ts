@@ -16,11 +16,11 @@ export const envSchema = z.object({
     REDIS_PASSWORD: z.string().optional(),
 
     // MinIO
-    MINIO_ENDPOINT: z.string(),
-    MINIO_USE_SSL: z.coerce.boolean(),
-    MINIO_ROOT_USER: z.string(),
-    MINIO_ROOT_PASSWORD: z.string(),
-    MINIO_BUCKET_NAME: z.string(),
+    // MINIO_ENDPOINT: z.string(),
+    // MINIO_USE_SSL: z.coerce.boolean(),
+    // MINIO_ROOT_USER: z.string(),
+    // MINIO_ROOT_PASSWORD: z.string(),
+    // MINIO_BUCKET_NAME: z.string(),
 
     // JWT for SHOP
     JWT_ACCESS_SECRET: z.string(),

@@ -28,7 +28,7 @@ import { DeleteProductOperation } from './decorator/deleteProductOperation.decor
 import { UploadProductImageOperation } from './decorator/uploadProductImageOperation.decorator';
 import { DeleteProductImageOperation } from './decorator/deleteProductImageOperation.decorator';
 import { ApiTags } from '@nestjs/swagger';
-import { ProductImageTransformer } from 'src/common/pipe/productImageTransformer.pipe';
+import { ImageTransformer } from 'src/common/pipe/imageTransform.pipe';
 
 @ApiTags('product')
 @Controller('product')
@@ -80,7 +80,7 @@ export class ProductController {
     @Post(':productId/image')
     async uploadProductImage(
         @Param('productId', ParseUUIDPipe) productId: string,
-        @UploadedFile(ProductImageTransformer) file: ITransformedFile,
+        @UploadedFile(ImageTransformer) file: ITransformedFile,
     ) {
         return await this.productService.uploadProductImage(productId, file);
     }

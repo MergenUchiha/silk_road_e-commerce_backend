@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import fastifyCookie from '@fastify/cookie';
-import fastifyCsrfProtection from '@fastify/csrf-protection';
 import fastifyHelmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
 import { ClassSerializerInterceptor } from '@nestjs/common';
@@ -12,15 +12,21 @@ import {
 import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
 import 'reflect-metadata';
 import { AppModule } from './app.module';
-// import { CacheService } from './cache/cache.service';
 import './instrument';
 import { LoggerService } from './utils/logger/logger.service';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import fastifyCors from '@fastify/cors';
-// import compression from 'compression';
+import fastifyStatic from '@fastify/static';
+import { join } from 'path';
+import { promises as fs } from 'fs';
 
 async function bootstrap() {
     patchNestJsSwagger();
+
+    // === 1. Ensure uploads folder exists ===
+    const uploadDir = join(process.cwd(), 'uploads');
+    await fs.mkdir(uploadDir, { recursive: true });
+
     const app = await NestFactory.create<NestFastifyApplication>(
         AppModule,
         new FastifyAdapter(),
@@ -33,15 +39,11 @@ async function bootstrap() {
     app.useLogger(logger);
 
     const configService = app.get(ConfigService);
-
-    // const cacheService = app.get(CacheService);
-
     const port = configService.getOrThrow<number>('PORT');
     const environment = configService.getOrThrow<string>('ENVIRONMENT');
-    const allowedOrigins =
-        configService.get<string>('FRONTEND_ORIGINS')?.split(',') || [];
+    const allowedOrigins = '*';
 
-    // await cacheService.init();
+    // === 2. Swagger ===
     if (configService.getOrThrow<boolean>('IS_SWAGGER_ENABLED')) {
         const config = new DocumentBuilder()
             .setTitle('Silk Road API')
@@ -54,8 +56,8 @@ async function bootstrap() {
         SwaggerModule.setup('docs', app, document);
     }
 
+    // === 3. Security & Base middlewares ===
     await app.register(fastifyHelmet);
-    // await app.register(fastifyCsrfProtection, { cookieOpts: { signed: true } });
     await app.register(fastifyCors, {
         credentials: true,
         origin: allowedOrigins,
@@ -63,23 +65,33 @@ async function bootstrap() {
         exposedHeaders: ['Set-Cookie'],
         methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     });
+
     await app.register(multipart);
     await app.register(fastifyCookie, {
-        secret: configService.getOrThrow<'string'>('COOKIE_SECRET'),
+        secret: configService.getOrThrow<string>('COOKIE_SECRET'),
     });
 
-    // app.use(compression());
+    // === 4. GLOBAL settings ===
     app.useGlobalPipes(new ZodValidationPipe());
-
     app.useGlobalInterceptors(
         new ClassSerializerInterceptor(app.get(Reflector)),
     );
+
     if (environment === 'development') {
         app.setGlobalPrefix('api');
     }
 
+    // === 5. STATIC FILES: fix 404 for uploads ===
+    await app.register(fastifyStatic, {
+        root: uploadDir,
+        prefix: '/uploads/', // <-- URL prefix
+        decorateReply: false,
+    });
+
+    // === 6. Start server ===
     await app.listen(port, '0.0.0.0', () => {
-        console.log(`Your server is listening on port ${port}`);
+        console.log(`Server is running on port ${port}`);
+        console.log(`Static files available at /uploads`);
     });
 }
 

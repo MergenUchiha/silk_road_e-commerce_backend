@@ -8,6 +8,7 @@ import {
 import { diskStorage, FileFastifyInterceptor } from 'fastify-file-interceptor';
 import { imageFilter } from 'src/common/filters/imageFilter';
 import { randomUUID } from 'crypto';
+import { join } from 'path';
 import { ADMIN } from 'src/common/decorators/isAdmin.decorator';
 
 export function UploadProductImageOperation() {
@@ -24,14 +25,14 @@ export function UploadProductImageOperation() {
         UseInterceptors(
             FileFastifyInterceptor('image', {
                 storage: diskStorage({
-                    destination: './temp',
+                    destination: join(process.cwd(), 'uploads'), // Сохраняем сразу в Uploads
                     filename: (req, file, cb) => {
                         const fileExtension = file.mimetype.split('/')[1];
                         const uniqueFileName = `${randomUUID()}.${fileExtension}`;
                         cb(null, uniqueFileName);
                     },
                 }),
-                limits: { fileSize: 1024 * 1024 * 1500 },
+                limits: { fileSize: 5 * 1024 * 1024 }, // Ограничение 5MB
                 fileFilter: imageFilter,
             }),
         ),
