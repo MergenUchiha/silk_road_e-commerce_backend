@@ -11,5 +11,6 @@ model Product {
     basketItems BasketItems[]
     orderItems  OrderItems[]
     images      Image[]
+    
     @@map("product")
 }

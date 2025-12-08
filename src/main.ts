@@ -87,6 +87,15 @@ async function bootstrap() {
         prefix: '/uploads/', // <-- URL prefix
         decorateReply: false,
     });
+    app.getHttpAdapter()
+        .getInstance()
+        .addHook('onSend', (request, reply, payload, done) => {
+            if (request.raw.url?.startsWith('/uploads/')) {
+                reply.header('Cross-Origin-Resource-Policy', 'cross-origin');
+                reply.header('Access-Control-Allow-Origin', '*');
+            }
+            done();
+        });
 
     // === 6. Start server ===
     await app.listen(port, '0.0.0.0', () => {

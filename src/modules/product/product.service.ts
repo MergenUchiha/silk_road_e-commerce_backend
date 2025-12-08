@@ -65,6 +65,7 @@ export class ProductService {
         });
         const count = await this.prisma.product.count();
         const parsed = ProductsResponseSchema.parse(products);
+        console.log(parsed);
         return { good: true, response: parsed, count: count };
     }
 
@@ -146,7 +147,7 @@ export class ProductService {
             filePath: file.filePath,
             mimeType: file.mimeType,
             size: file.size,
-            productId: file.productId,
+            productId: productId,
         };
 
         const media = await this.prisma.image.create({
