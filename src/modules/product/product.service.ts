@@ -65,7 +65,7 @@ export class ProductService {
         });
         const count = await this.prisma.product.count();
         const parsed = ProductsResponseSchema.parse(products);
-        console.log(parsed);
+        // console.log(parsed);
         return { good: true, response: parsed, count: count };
     }
 

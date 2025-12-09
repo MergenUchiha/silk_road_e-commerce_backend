@@ -41,7 +41,8 @@ async function bootstrap() {
     const configService = app.get(ConfigService);
     const port = configService.getOrThrow<number>('PORT');
     const environment = configService.getOrThrow<string>('ENVIRONMENT');
-    const allowedOrigins = '*';
+    const allowedOrigins =
+        configService.getOrThrow<string[]>('FRONTEND_ORIGINS');
 
     // === 2. Swagger ===
     if (configService.getOrThrow<boolean>('IS_SWAGGER_ENABLED')) {

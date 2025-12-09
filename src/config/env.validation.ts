@@ -7,6 +7,9 @@ export const envSchema = z.object({
     COOKIE_SECRET: z.string(),
     DOMAIN_NAME: z.string().optional(),
 
+    // CORS
+    FRONTEND_ORIGINS: z.string().transform((val) => val.split(',')),
+
     // Database
     DATABASE_URL: z.string().url(),
 
@@ -40,17 +43,21 @@ export const envSchema = z.object({
 
     // Tokens / verification
     EMAIL_VERIFICATION_TIME: z.coerce.number(),
-    TOKEN_REDIS_EXPIRE_TIME: z.coerce.number(),
-    VERIFICATION_CODE_EXPIRE: z.coerce.number(),
+    TOKEN_REDIS_EXPIRE_TIME: z.coerce.number().optional(),
+    VERIFICATION_CODE_EXPIRE: z.coerce.number().optional(),
 
     // Directus
     DIRECTUS_URL: z.string(),
-    DIRECTUS_KEY: z.string(),
-    DIRECTUS_SECRET: z.string(),
-    DIRECTUS_ADMIN_EMAIL: z.string().email(),
-    DIRECTUS_ADMIN_PASSWORD: z.string(),
-    DIRECTUS_ADMIN_NAME: z.string(),
-    MAX_PAYLOAD_SIZE: z.coerce.number(),
+    DIRECTUS_KEY: z.string().optional(),
+    DIRECTUS_SECRET: z.string().optional(),
+    DIRECTUS_ADMIN_EMAIL: z.string().email().optional(),
+    DIRECTUS_ADMIN_PASSWORD: z.string().optional(),
+    DIRECTUS_ADMIN_NAME: z.string().optional(),
+    MAX_PAYLOAD_SIZE: z.coerce.number().optional(),
+
+    // Admin defaults
+    DEFAULT_ADMIN_USERNAME: z.string(),
+    DEFAULT_ADMIN_PASSWORD: z.string(),
 
     // Health check
     HEALTH_CHECK_TOKEN: z.string(),
