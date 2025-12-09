@@ -1,12 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-const PhoneNumberRegex = /^\+[1-9]\d{1,14}$/;
-
 export const UserRegistrationRequestSchema = z.object({
-    phoneNumber: z.string().regex(PhoneNumberRegex, {
+    email: z.string().email({
         message:
-            'Номер телефона должен быть в международном формате, например, +12025550123',
+            'Email должен быть в правильном формате, например, user@example.com',
     }),
     password: z
         .string()
@@ -29,9 +27,9 @@ export const UserVerificationRequestSchema = z.object({
 });
 
 export const UserLoginRequestSchema = z.object({
-    phoneNumber: z.string().regex(PhoneNumberRegex, {
+    email: z.string().email({
         message:
-            'Номер телефона должен быть в международном формате, например, +447911123456',
+            'Email должен быть в правильном формате, например, user@example.com',
     }),
     password: z
         .string()
@@ -42,12 +40,12 @@ export const UserResponseSchema = z.object({
     id: z.string().uuid(),
     firstName: z.string().optional().nullable(),
     secondName: z.string().optional().nullable(),
-    phoneNumber: z.string(),
+    email: z.string(),
 });
 
 export const UserTokenResponseSchema = z.object({
     id: z.string().uuid(),
-    phoneNumber: z.string(),
+    email: z.string(),
     firstName: z.string().optional(),
     secondName: z.string().optional(),
     refreshToken: z.string().jwt(),
@@ -59,7 +57,7 @@ export type TApiUserResponse = z.infer<typeof UserResponseSchema>;
 export class TApiUserAuthTokenResponse extends createZodDto(
     UserTokenResponseSchema.pick({
         id: true,
-        phoneNumber: true,
+        email: true,
         refreshToken: true,
         accessToken: true,
     }),

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
     BadRequestException,
     ConflictException,
@@ -6,7 +7,7 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import { generateHash, verifyHash } from 'src/helpers/providers/generateHash';
-import { generateVerificationPhoneNumberCodeAndExpiry } from 'src/helpers/providers/generateVerificationPhoneNumberCodeAndExpiry';
+import { generateVerificationEmailCodeAndExpiry } from 'src/helpers/providers/generateVerificationEmailCodeAndExpiry';
 import {
     TApiUserAuthTokenResponse,
     TApiUserResponse,
@@ -18,7 +19,7 @@ import {
 } from 'src/libs/contracts';
 import {
     UserNotFoundException,
-    UserPhoneNumberAlreadyExistsException,
+    UserEmailAlreadyExistsException,
     UserWrongPasswordException,
 } from 'src/libs/contracts/exceptions';
 import { TApiResp } from 'src/libs/contracts/interface';
@@ -38,14 +39,14 @@ export class AuthService {
     async userRegistration(
         dto: UserRegistrationDto,
     ): Promise<TApiResp<TApiUserResponse>> {
-        await this.isPhoneNumberExist(dto.phoneNumber);
+        await this.isEmailExist(dto.email);
         const hashedPassword = await generateHash(dto.password);
         dto.password = hashedPassword;
         const user = await this.prisma.user.create({ data: dto });
-        const { code, expiry } = generateVerificationPhoneNumberCodeAndExpiry();
+        const { code, expiry } = generateVerificationEmailCodeAndExpiry();
         await this.redis.setWithExpiry(
-            'phoneNumberVerification',
-            `${user.id}:${user.phoneNumber}`,
+            'emailVerification',
+            `${user.id}:${user.email}`,
             code,
             +expiry,
         );
@@ -58,7 +59,7 @@ export class AuthService {
     async userLogin(
         dto: UserLoginDto,
     ): Promise<TApiResp<TApiUserAuthTokenResponse>> {
-        const user = await this.findUserByPhoneNumber(dto.phoneNumber);
+        const user = await this.findUserByEmail(dto.email);
         const isPasswordCorrect = await verifyHash(dto.password, user.password);
         if (!user.isVerified) {
             throw new ForbiddenException('User is not verified');
@@ -75,7 +76,7 @@ export class AuthService {
             good: true,
             response: {
                 id: user.id,
-                phoneNumber: user.phoneNumber,
+                email: user.email,
                 accessToken: tokens.accessToken,
                 refreshToken: tokens.refreshToken,
             },
@@ -106,7 +107,7 @@ export class AuthService {
 
         return {
             good: true,
-            response: { id: user.id, phoneNumber: user.phoneNumber, ...tokens },
+            response: { id: user.id, email: user.email, ...tokens },
         };
     }
 
@@ -128,11 +129,7 @@ export class AuthService {
         if (user.isVerified) {
             throw new ConflictException('User already has been verified!');
         }
-        await this.validateVerificationPhoneNumberCode(
-            dto,
-            user.id,
-            user.phoneNumber,
-        );
+        await this.validateVerificationEmailCode(dto, user.id, user.email);
         await this.prisma.user.update({
             where: { id: userId },
             data: { isVerified: true },
@@ -145,10 +142,10 @@ export class AuthService {
         if (user.isVerified) {
             throw new ConflictException('User already has been verified!');
         }
-        const { code, expiry } = generateVerificationPhoneNumberCodeAndExpiry();
+        const { code, expiry } = generateVerificationEmailCodeAndExpiry();
         await this.redis.setWithExpiry(
-            'phoneNumberVerification',
-            `${user.id}:${user.phoneNumber}`,
+            'emailVerification',
+            `${user.id}:${user.email}`,
             code,
             +expiry,
         );
@@ -188,20 +185,20 @@ export class AuthService {
         };
     }
 
-    private async validateVerificationPhoneNumberCode(
+    private async validateVerificationEmailCode(
         dto: UserVerificationDto,
         userId: string,
-        userPhoneNumber: string,
+        userEmail: string,
     ): Promise<void> {
-        const key = `${userId}:${userPhoneNumber}`;
-        const verificationPhoneNumberCode = await this.redis.get(
-            'phoneNumberVerification',
+        const key = `${userId}:${userEmail}`;
+        const verificationEmailCode = await this.redis.get(
+            'emailVerification',
             key,
         );
-        if (verificationPhoneNumberCode !== dto.code) {
+        if (verificationEmailCode !== dto.code) {
             throw new BadRequestException('Verification code is wrong');
         }
-        await this.redis.delete('phoneNumberVerification', key);
+        await this.redis.delete('emailVerification', key);
     }
 
     private async findUserById(userId: string) {
@@ -214,20 +211,20 @@ export class AuthService {
         return user;
     }
 
-    private async findUserByPhoneNumber(phoneNumber: string) {
+    private async findUserByEmail(email: string) {
         const user = await this.prisma.user.findUnique({
-            where: { phoneNumber: phoneNumber },
+            where: { email: email },
         });
         if (!user) throw new UserNotFoundException();
         return user;
     }
 
-    private async isPhoneNumberExist(phoneNumber: string) {
+    private async isEmailExist(email: string) {
         const user = await this.prisma.user.findUnique({
-            where: { phoneNumber: phoneNumber },
+            where: { email: email },
         });
         if (user) {
-            throw new UserPhoneNumberAlreadyExistsException();
+            throw new UserEmailAlreadyExistsException();
         }
     }
 }

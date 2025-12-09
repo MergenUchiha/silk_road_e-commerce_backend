@@ -2,7 +2,7 @@ model User {
     id           String    @id() @default(uuid()) @db.Uuid
     firstName    String?   @db.VarChar(255) @map("first_name")
     secondName   String?   @db.VarChar(255) @map("second_name")
-    phoneNumber  String    @unique @map("phone_number")
+    email        String    @unique @map("email")
     password     String    @db.VarChar()
     isVerified   Boolean   @map("is_verified") @default(false)
 

@@ -131,12 +131,12 @@ export class UserNotFoundException extends ApiBaseException {
     }
 }
 
-export class UserPhoneNumberAlreadyExistsException extends ApiBaseException {
+export class UserEmailAlreadyExistsException extends ApiBaseException {
     static CODE = 7;
     constructor() {
         super(
-            'User phone number already exists',
-            UserPhoneNumberAlreadyExistsException.CODE,
+            'User email already exists',
+            UserEmailAlreadyExistsException.CODE,
             null,
             HttpStatus.CONFLICT,
         );
