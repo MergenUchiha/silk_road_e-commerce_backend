@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ITransformedFile } from 'src/common/interfaces/fileTransform.interface';
 import {
