@@ -9,7 +9,7 @@ services:
         environment:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: Uchiha_11
-            POSTGRES_DB: silk_road_e-commerce_backend
+            POSTGRES_DB: silk_road_ecommerce_backend
             PGDATA: /var/lib/postgresql/data/pgdata
         volumes:
             - postgres_data:/var/lib/postgresql/data
@@ -21,7 +21,7 @@ services:
             test:
                 [
                     'CMD-SHELL',
-                    'pg_isready -U postgres -d silk_road_e-commerce_backend',
+                    'pg_isready -U postgres -d silk_road_ecommerce_backend',
                 ]
             interval: 10s
             timeout: 5s
@@ -64,7 +64,7 @@ services:
             COOKIE_SECRET: ${COOKIE_SECRET}
 
             # Database - внутренний хост в Docker сети
-            DATABASE_URL: postgresql://postgres:Uchiha_11@postgres:5432/silk_road_e-commerce_backend
+            DATABASE_URL: postgresql://postgres:Uchiha_11@postgres:5432/silk_road_ecommerce_backend
 
             # Redis - внутренний хост в Docker сети
             REDIS_HOST: redis
@@ -149,7 +149,7 @@ services:
             DB_CLIENT: postgres
             DB_HOST: postgres
             DB_PORT: 5432
-            DB_DATABASE: silk_road_e-commerce_backend
+            DB_DATABASE: silk_road_ecommerce_backend
             DB_USER: postgres
             DB_PASSWORD: Uchiha_11
 
