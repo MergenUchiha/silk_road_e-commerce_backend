@@ -1,64 +1,245 @@
 version: '3.8'
 
 services:
-    redis:
-        image: redis:7-alpine
-        container_name: redis
-        ports:
-            - '${REDIS_PORT:-6379}:6379'
-        volumes:
-            - redis_data:/data
-        networks:
-            - app
-        healthcheck:
-            test: ['CMD', 'redis-cli', 'ping']
-            interval: 5s
-            timeout: 3s
-            retries: 5
+    # ========== PostgreSQL Database ==========
+    postgres:
+        image: postgres:16-alpine
+        container_name: silkroad_postgres
         restart: unless-stopped
-
-    minio:
-        image: minio/minio
-        container_name: minio
-        command: server /data --console-address ":9090"
         environment:
-            MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-        ports:
-            - '${MINIO_PORT:-9000}:9000'
-            - '9090:9090'
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: Uchiha_11
+            POSTGRES_DB: silk_road_e-commerce_backend
+            PGDATA: /var/lib/postgresql/data/pgdata
         volumes:
-            - minio_data:/data
+            - postgres_data:/var/lib/postgresql/data
+        ports:
+            - '5432:5432'
         networks:
-            - app
+            - silkroad_network
         healthcheck:
             test:
-                ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+                [
+                    'CMD-SHELL',
+                    'pg_isready -U postgres -d silk_road_e-commerce_backend',
+                ]
             interval: 10s
             timeout: 5s
-            retries: 3
-        restart: unless-stopped
+            retries: 5
+            start_period: 10s
 
-    directus:
-        image: directus/directus:latest
-        container_name: directus
-        env_file:
-            - ./.env
+    # ========== Redis Cache ==========
+    redis:
+        image: redis:7-alpine
+        container_name: silkroad_redis
+        restart: unless-stopped
+        command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+        volumes:
+            - redis_data:/data
         ports:
-            - '${DIRECTUS_PORT:-8055}:8055'
+            - '6379:6379'
+        networks:
+            - silkroad_network
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 5s
+
+    # ========== NestJS Backend API ==========
+    backend:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: production
+        container_name: silkroad_backend
+        restart: unless-stopped
+        environment:
+            # General
+            ENVIRONMENT: production
+            PORT: 5005
+            BACKEND_URL: https://api.silkroadro.com
+            DOMAIN_NAME: silkroadro.com
+            COOKIE_SECRET: ${COOKIE_SECRET}
+
+            # Database - внутренний хост в Docker сети
+            DATABASE_URL: postgresql://postgres:Uchiha_11@postgres:5432/silk_road_e-commerce_backend
+
+            # Redis - внутренний хост в Docker сети
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+            REDIS_PASSWORD: ''
+
+            # JWT Shop Users
+            JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+            JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+            JWT_ACCESS_TIME: 10m
+            JWT_REFRESH_TIME: 30d
+
+            # JWT Admin
+            JWT_ADMIN_ACCESS_SECRET: ${JWT_ADMIN_ACCESS_SECRET}
+            JWT_ADMIN_REFRESH_SECRET: ${JWT_ADMIN_REFRESH_SECRET}
+            JWT_ADMIN_ACCESS_TIME: 10m
+            JWT_ADMIN_REFRESH_TIME: 30d
+
+            # Rate Limiting
+            RATE_LIMIT_TTL: 600
+            RATE_LIMIT_LIMIT: 10
+
+            # Verification
+            EMAIL_VERIFICATION_TIME: 5
+            TOKEN_REDIS_EXPIRE_TIME: 600000
+            VERIFICATION_CODE_EXPIRE: 600000
+
+            # Directus
+            DIRECTUS_URL: https://admin.silkroadro.com
+            DIRECTUS_KEY: ${DIRECTUS_KEY}
+            DIRECTUS_SECRET: ${DIRECTUS_SECRET}
+            DIRECTUS_ADMIN_EMAIL: admin@silkroadro.com
+            DIRECTUS_ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
+            DIRECTUS_ADMIN_NAME: Admin
+
+            # Health Check
+            HEALTH_CHECK_TOKEN: ${HEALTH_CHECK_TOKEN}
+
+            # Frontend Origins
+            FRONTEND_ORIGINS: https://silkroadro.com,https://www.silkroadro.com,https://admin.silkroadro.com
+
+            # Swagger
+            IS_SWAGGER_ENABLED: 'false'
+
+            # Default Admin
+            DEFAULT_ADMIN_USERNAME: admin
+            DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD}
+
+            NODE_ENV: production
+        volumes:
+            # Монтируем папку uploads для хранения изображений
+            - ./uploads:/app/uploads
+            - backend_logs:/app/logs
+        ports:
+            - '5005:5005'
+        networks:
+            - silkroad_network
         depends_on:
+            postgres:
+                condition: service_healthy
             redis:
                 condition: service_healthy
-            minio:
-                condition: service_healthy
-        networks:
-            - app
+        healthcheck:
+            test:
+                [
+                    'CMD',
+                    'wget',
+                    '--no-verbose',
+                    '--tries=1',
+                    '--spider',
+                    'http://localhost:5005/health',
+                ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 60s
+
+    # ========== Directus Admin Panel ==========
+    directus:
+        image: directus/directus:11
+        container_name: silkroad_directus
         restart: unless-stopped
+        environment:
+            # Core Settings
+            KEY: ${DIRECTUS_KEY}
+            SECRET: ${DIRECTUS_SECRET}
+            PUBLIC_URL: https://admin.silkroadro.com
+            WEBSOCKETS_ENABLED: 'true'
 
-volumes:
-    redis_data:
-    minio_data:
+            # Database - внутренний хост в Docker сети
+            DB_CLIENT: postgres
+            DB_HOST: postgres
+            DB_PORT: 5432
+            DB_DATABASE: silk_road_e-commerce_backend
+            DB_USER: postgres
+            DB_PASSWORD: Uchiha_11
 
+            # Redis - внутренний хост в Docker сети
+            REDIS: redis://redis:6379
+            CACHE_ENABLED: 'true'
+            CACHE_STORE: redis
+            CACHE_REDIS: redis://redis:6379
+            MESSENGER_STORE: redis
+            MESSENGER_REDIS: redis://redis:6379
+
+            # Storage - Local filesystem
+            STORAGE_LOCATIONS: local
+            STORAGE_LOCAL_DRIVER: local
+            STORAGE_LOCAL_ROOT: ./uploads
+
+            # Admin User
+            ADMIN_EMAIL: admin@silkroadro.com
+            ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
+
+            # CORS
+            CORS_ENABLED: 'true'
+            CORS_ORIGIN: https://silkroadro.com,https://admin.silkroadro.com,https://api.silkroadro.com
+            CORS_METHODS: GET,POST,PATCH,DELETE,PUT
+            CORS_ALLOWED_HEADERS: Content-Type,Authorization
+            CORS_EXPOSED_HEADERS: Content-Range
+            CORS_CREDENTIALS: 'true'
+
+            # Performance
+            MAX_PAYLOAD_SIZE: 10mb
+            RATE_LIMITER_ENABLED: 'true'
+            RATE_LIMITER_POINTS: 50
+            RATE_LIMITER_DURATION: 1
+        volumes:
+            # Локальное хранилище для Directus
+            - directus_uploads:/directus/uploads
+            - directus_extensions:/directus/extensions
+        ports:
+            - '8055:8055'
+        networks:
+            - silkroad_network
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+        healthcheck:
+            test:
+                [
+                    'CMD',
+                    'wget',
+                    '--no-verbose',
+                    '--tries=1',
+                    '--spider',
+                    'http://localhost:8055/server/health',
+                ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 60s
+
+# ========== Networks ==========
 networks:
-    app:
+    silkroad_network:
         driver: bridge
+        name: silkroad_network
+
+# ========== Volumes ==========
+volumes:
+    postgres_data:
+        driver: local
+        name: silkroad_postgres_data
+    redis_data:
+        driver: local
+        name: silkroad_redis_data
+    directus_uploads:
+        driver: local
+        name: silkroad_directus_uploads
+    directus_extensions:
+        driver: local
+        name: silkroad_directus_extensions
+    backend_logs:
+        driver: local
+        name: silkroad_backend_logs
